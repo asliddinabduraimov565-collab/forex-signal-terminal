@@ -54,12 +54,12 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  const fetchData = useCallback(async () => {
+    const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       // Rates
       const resRate = await fetch(
-        `https://query1.finance.yahoo.com/v8/finance/chart/${selectedPair.symbol}?range=5d&interval=15m`
+        `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${selectedPair.symbol}?range=5d&interval=15m`)}`
       );
       const dataRate = await resRate.json();
       const result = dataRate.chart?.result?.[0];
@@ -95,6 +95,22 @@ export default function App() {
       }
 
       // News RSS
+      const resNews = await fetch(
+        `https://corsproxy.io/?${encodeURIComponent(`https://api.rss2json.com/v1/api.json?rss_url=https://www.forexlive.com/feed/news`)}`
+      );
+      const dataNews = await resNews.json();
+      if (dataNews.status === "ok") {
+        setNews(dataNews.items.slice(0, 5));
+      }
+
+      setLastUpdated(new Date().toLocaleTimeString());
+    } catch (err) {
+      console.error("Fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedPair]);
+
       const resNews = await fetch(
         `https://api.rss2json.com/v1/api.json?rss_url=https://www.forexlive.com/feed/news`
       );
