@@ -21,11 +21,10 @@ export default function App() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      // Rates fetch
-      const resRate = await fetch(
-        `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${selectedPair.symbol}?range=5d&interval=15m`)}`
-      );
-      const dataRate = await resRate.json();
+      const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${selectedPair.symbol}?range=1d&interval=15m`;
+      const resRate = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`);
+      const dataJson = await resRate.json();
+      const dataRate = JSON.parse(dataJson.contents);
       const result = dataRate.chart?.result?.[0];
 
       if (result) {
@@ -37,9 +36,9 @@ export default function App() {
               hour: "2-digit",
               minute: "2-digit",
             }),
-            price: quote.close[idx],
+            price: quote.close[idx] ? Number(quote.close[idx].toFixed(4)) : null,
           }))
-          .filter((item) => item.price != null);
+          .filter((item) => item.price !== null);
 
         setChartData(formattedChart);
 
@@ -49,18 +48,23 @@ export default function App() {
         const change = currentPrice - prevClose;
         const changePercent = (change / prevClose) * 100;
 
+        // Генерация сигнала на основе изменения цены
+        const signalType = change >= 0 ? "BUY (Сотиб олиш)" : "SELL (Сотиш)";
+        const signalColor = change >= 0 ? "#26a69a" : "#ef5350";
+
         setRateData({
-          price: currentPrice,
-          change,
-          changePercent,
+          price: currentPrice ? currentPrice.toFixed(4) : "N/A",
+          change: change ? change.toFixed(4) : 0,
+          changePercent: changePercent ? changePercent.toFixed(2) : 0,
+          signalType,
+          signalColor,
         });
       }
 
-      // News fetch
-      const resNews = await fetch(
-        `https://corsproxy.io/?${encodeURIComponent(`https://api.rss2json.com/v1/api.json?rss_url=https://www.forexlive.com/feed/news`)}`
-      );
-      const dataNews = await resNews.json();
+      const newsUrl = `https://api.rss2json.com/v1/api.json?rss_url=https://www.forexlive.com/feed/news`;
+      const resNews = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(newsUrl)}`);
+      const newsJson = await resNews.json();
+      const dataNews = JSON.parse(newsJson.contents);
       if (dataNews.status === "ok") {
         setNews(dataNews.items.slice(0, 5));
       }
@@ -78,7 +82,7 @@ export default function App() {
   return (
     <div style={{ padding: "20px", background: "#0b0e14", color: "#fff", minHeight: "100vh", fontFamily: "sans-serif" }}>
       <h2>Forex Signal Terminal</h2>
-      
+
       <div style={{ display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap" }}>
         {PAIRS.map((pair) => (
           <button
@@ -99,11 +103,25 @@ export default function App() {
       </div>
 
       {loading ? (
-        <p>Юкланмоқда...</p>
+        <p>Маълумотлар юкланмоқда...</p>
       ) : (
         <div>
-          <h3>{selectedPair.name}: {rateData?.price}</h3>
-          <div style={{ height: "300px", width: "100%" }}>
+          {/* Сигнал панели */}
+          <div style={{ background: "#1e222d", padding: "15px", borderRadius: "8px", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: "22px" }}>
+                {selectedPair.name}: {rateData?.price}
+              </h3>
+              <span style={{ fontSize: "14px", color: rateData?.change >= 0 ? "#26a69a" : "#ef5350" }}>
+                Ўзгариш: {rateData?.change >= 0 ? "+" : ""}{rateData?.change} ({rateData?.changePercent}%)
+              </span>
+            </div>
+            <div style={{ background: rateData?.signalColor, padding: "10px 20px", borderRadius: "6px", fontWeight: "bold", fontSize: "16px" }}>
+              Сигнал: {rateData?.signalType}
+            </div>
+          </div>
+
+          <div style={{ height: "300px", width: "100%", background: "#131722", padding: "10px", borderRadius: "8px" }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <XAxis dataKey="time" stroke="#8a94a6" />
@@ -116,10 +134,10 @@ export default function App() {
 
           <div style={{ marginTop: "30px" }}>
             <h3>Бозор янгиликлари</h3>
-            <ul>
+            <ul style={{ paddingLeft: "20px" }}>
               {news.map((item, index) => (
-                <li key={index} style={{ marginBottom: "8px" }}>
-                  <a href={item.link} target="_blank" rel="noreferrer" style={{ color: "#2962ff" }}>
+                <li key={index} style={{ marginBottom: "10px" }}>
+                  <a href={item.link} target="_blank" rel="noreferrer" style={{ color: "#2962ff", textDecoration: "none" }}>
                     {item.title}
                   </a>
                 </li>
