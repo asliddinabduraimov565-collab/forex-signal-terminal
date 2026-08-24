@@ -48,16 +48,29 @@ export default function App() {
         const change = currentPrice - prevClose;
         const changePercent = (change / prevClose) * 100;
 
-        // Генерация сигнала на основе изменения цены
-        const signalType = change >= 0 ? "BUY (Сотиб олиш)" : "SELL (Сотиш)";
-        const signalColor = change >= 0 ? "#26a69a" : "#ef5350";
+        // Сигнал ва Кириш/Чиқиш зоналарини ҳисоблаш
+        const isBuy = change >= 0;
+        const signalType = isBuy ? "BUY (Сотиб олиш)" : "SELL (Сотиш)";
+        const signalColor = isBuy ? "#26a69a" : "#ef5350";
+
+        // Тилла (XAU/USD) ва Йена (JPY) учун пунктлар фарқланади
+        const step = selectedPair.id === "XAUUSD" ? 5.0 : selectedPair.id.includes("JPY") ? 0.30 : 0.0020;
+
+        const entryPrice = currentPrice;
+        const tpPrice = isBuy ? currentPrice + step : currentPrice - step;
+        const slPrice = isBuy ? currentPrice - step * 0.5 : currentPrice + step * 0.5;
+
+        const decimals = selectedPair.id === "XAUUSD" || selectedPair.id.includes("JPY") ? 2 : 4;
 
         setRateData({
-          price: currentPrice ? currentPrice.toFixed(4) : "N/A",
-          change: change ? change.toFixed(4) : 0,
+          price: currentPrice ? currentPrice.toFixed(decimals) : "N/A",
+          change: change ? change.toFixed(decimals) : 0,
           changePercent: changePercent ? changePercent.toFixed(2) : 0,
           signalType,
           signalColor,
+          entryPrice: entryPrice.toFixed(decimals),
+          tpPrice: tpPrice.toFixed(decimals),
+          slPrice: slPrice.toFixed(decimals),
         });
       }
 
@@ -81,7 +94,7 @@ export default function App() {
 
   return (
     <div style={{ padding: "20px", background: "#0b0e14", color: "#fff", minHeight: "100vh", fontFamily: "sans-serif" }}>
-      <h2>Forex Signal Terminal</h2>
+      <h2>Forex Signal Terminal Pro</h2>
 
       <div style={{ display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap" }}>
         {PAIRS.map((pair) => (
@@ -103,11 +116,11 @@ export default function App() {
       </div>
 
       {loading ? (
-        <p>Маълумотлар юкланмоқда...</p>
+        <p>Маълумотлар ва даражалар юкланмоқда...</p>
       ) : (
         <div>
-          {/* Сигнал панели */}
-          <div style={{ background: "#1e222d", padding: "15px", borderRadius: "8px", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
+          {/* Асосий валюта ва Сигнал */}
+          <div style={{ background: "#1e222d", padding: "15px", borderRadius: "8px", marginBottom: "15px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
             <div>
               <h3 style={{ margin: 0, fontSize: "22px" }}>
                 {selectedPair.name}: {rateData?.price}
@@ -121,6 +134,25 @@ export default function App() {
             </div>
           </div>
 
+          {/* Кириш ва Чиқиш Зоналари (Entry, TP, SL) */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "15px", marginBottom: "20px" }}>
+            <div style={{ background: "#131722", padding: "15px", borderRadius: "8px", borderLeft: "4px solid #2962ff" }}>
+              <span style={{ color: "#8a94a6", fontSize: "12px" }}>КИРИШ ЗОНАСИ (ENTRY)</span>
+              <h4 style={{ margin: "5px 0 0 0", fontSize: "18px" }}>{rateData?.entryPrice}</h4>
+            </div>
+
+            <div style={{ background: "#131722", padding: "15px", borderRadius: "8px", borderLeft: "4px solid #26a69a" }}>
+              <span style={{ color: "#8a94a6", fontSize: "12px" }}>ФОЙДАНИ ОЛИШ (TAKE PROFIT)</span>
+              <h4 style={{ margin: "5px 0 0 0", fontSize: "18px", color: "#26a69a" }}>{rateData?.tpPrice}</h4>
+            </div>
+
+            <div style={{ background: "#131722", padding: "15px", borderRadius: "8px", borderLeft: "4px solid #ef5350" }}>
+              <span style={{ color: "#8a94a6", fontSize: "12px" }}>ЗАРАРНИ ЧЕКЛАШ (STOP LOSS)</span>
+              <h4 style={{ margin: "5px 0 0 0", fontSize: "18px", color: "#ef5350" }}>{rateData?.slPrice}</h4>
+            </div>
+          </div>
+
+          {/* График */}
           <div style={{ height: "300px", width: "100%", background: "#131722", padding: "10px", borderRadius: "8px" }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
@@ -132,6 +164,7 @@ export default function App() {
             </ResponsiveContainer>
           </div>
 
+          {/* Бозор янгиликлари */}
           <div style={{ marginTop: "30px" }}>
             <h3>Бозор янгиликлари</h3>
             <ul style={{ paddingLeft: "20px" }}>
