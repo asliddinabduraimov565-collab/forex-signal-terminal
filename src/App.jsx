@@ -1,329 +1,300 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 
-const PAIRS = [
-  { id: "BTCUSD", name: "Bitcoin (Binance Live)", tvSymbol: "BINANCE:BTCUSDT", isCrypto: true, symbol: "btcusdt" },
-  { id: "EURUSD", name: "EUR/USD", tvSymbol: "FX:EURUSD", isCrypto: false },
-  { id: "GBPUSD", name: "GBP/USD", tvSymbol: "FX:GBPUSD", isCrypto: false },
-  { id: "XAUUSD", name: "XAU/USD (Gold)", tvSymbol: "OANDA:XAUUSD", isCrypto: false },
+const PROPERTIES = [
+  {
+    id: 1,
+    title: "Шинам 3 хонали квартира (Центр)",
+    category: "Квартира",
+    price: "$85,000",
+    rooms: 3,
+    area: "78 m²",
+    location: "Тошкент ш., Чилонзор тумани",
+    description: "Евроремонт қилинган, барча мебеллари билан бирга сотилади. Метрога яқин.",
+    image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&auto=format&fit=crop&q=80",
+    url: "https://www.olx.uz/nedvizhimost/kvartiry/prodazha/"
+  },
+  {
+    id: 2,
+    title: "Ҳашаматли Ҳовли (Коттедж)",
+    category: "Ҳовли",
+    price: "$210,000",
+    rooms: 6,
+    area: "4.5 сотих",
+    location: "Тошкент вил., Зангиота",
+    description: "Янги қурилган, бассейн ва ёзги ошхонаси бор. Тинч маҳалла.",
+    image: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=600&auto=format&fit=crop&q=80",
+    url: "https://www.olx.uz/nedvizhimost/doma/prodazha/"
+  },
+  {
+    id: 3,
+    title: "Бизнес учун қулай Офис жойи",
+    category: "Офис",
+    price: "$120,000",
+    rooms: 4,
+    area: "110 m²",
+    location: "Тошкент ш., Миробод тумани",
+    description: "Бизнес марказда, алоҳида кириш жойи ва автотураргоҳи мавжуд.",
+    image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop&q=80",
+    url: "https://www.olx.uz/nedvizhimost/kommercheskaya-nedvizhimost/"
+  },
+  {
+    id: 4,
+    title: "Замонавий 2 хонали студия",
+    category: "Квартира",
+    price: "$58,000",
+    rooms: 2,
+    area: "52 m²",
+    location: "Тошкент ш., Юнусобод тумани",
+    description: "Новая новостройка, панорамные окна, шикарный вид на город.",
+    image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&auto=format&fit=crop&q=80",
+    url: "https://www.olx.uz/nedvizhimost/kvartiry/prodazha/"
+  },
+  {
+    id: 5,
+    title: "Яшил баҳмал диванли ва ёғоч стол қўйилган меҳмонхона интерьери",
+    category: "Дизайн лойиҳа",
+    price: "Махсус лойиҳа",
+    rooms: 1,
+    area: "Алоҳида хона",
+    location: "Интерьер дизайни",
+    description: "Бу сизнинг расмингиз асосида ўзгартирилган дизайн: кўк диван яшил баҳмал диванга алмаштирилди, оқ стол эса қора оёқли ёғоч столга ўзгартирилди.",
+    image: "watermarked_img_17003745142212475164.png", // Ўзингизнинг расм линкингиз ёки файлингиз номи
+    url: "#"
+  }
+];
+
+const REAL_ESTATE_NEWS = [
+  {
+    id: 1,
+    time: "Янги",
+    text: "Марказий банк ипотека кредитлаш шартлари ва фоиз ставкалари бўйича янги ҳисобот эълон қилди.",
+    impact: "Муҳим",
+    url: "https://cbu.uz/uz/press_center/news/"
+  },
+  {
+    id: 2,
+    time: "1 соат олдин",
+    text: "Тошкент шаҳрида янги қурилаётган уйлар нархининг ўзгариш тенденциялари таҳлили.",
+    impact: "Ўрта",
+    url: "https://www.gazeta.uz/uz/tag/ko-chmas-mulk/"
+  },
+  {
+    id: 3,
+    time: "3 соат олдин",
+    text: "Ер участкаларини расмийлаштириш ва кадастр ҳужжатларини олиш бўйича янги тартиблар.",
+    impact: "Юқори",
+    url: "https://lex.uz/"
+  }
 ];
 
 export default function App() {
-  const [selectedPair, setSelectedPair] = useState(PAIRS[0]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("Барчаси");
+  const [activeImage, setActiveImage] = useState(null); // Расмни катта қилиб кўриш учун
+  const [formData, setFormData] = useState({ name: "", phone: "", message: "" });
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  // Binance / Live Trade ва Order Book стейтлари
-  const [bids, setBids] = useState([]); // Харидорлар
-  const [asks, setAsks] = useState([]); // Сотувчилар
-  const [recentTrades, setRecentTrades] = useState([]); // Жонли битимлар
-  const [currentPrice, setCurrentPrice] = useState("96450.00");
-  const [priceChange, setPriceChange] = useState("+2.4%");
+  const filteredProperties = selectedCategory === "Барчаси" 
+    ? PROPERTIES 
+    : PROPERTIES.filter(p => p.category === selectedCategory);
 
-  const containerRef = useRef();
-  const calendarRef = useRef();
-
-  // TradingView Графиги
-  useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.innerHTML = "";
-      const script = document.createElement("script");
-      script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
-      script.type = "text/javascript";
-      script.async = true;
-      script.innerHTML = JSON.stringify({
-        autosize: true,
-        symbol: selectedPair.tvSymbol,
-        interval: "15",
-        timezone: "Etc/UTC",
-        theme: "dark",
-        style: "1",
-        locale: "ru",
-        enable_publishing: false,
-        allow_symbol_change: false,
-        calendar: false,
-        support_host: "https://www.tradingview.com"
-      });
-      containerRef.current.appendChild(script);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!formData.name || !formData.phone) {
+      alert("Илтимос, исмингиз ва телефон рақамингизни киритинг!");
+      return;
     }
-  }, [selectedPair]);
-
-  // TradingView Иқтисодий тақвими
-  useEffect(() => {
-    if (calendarRef.current) {
-      calendarRef.current.innerHTML = "";
-      const script = document.createElement("script");
-      script.src = "https://s3.tradingview.com/external-embedding/embed-widget-events.js";
-      script.type = "text/javascript";
-      script.async = true;
-      script.innerHTML = JSON.stringify({
-        colorTheme: "dark",
-        isTransparent: false,
-        width: "100%",
-        height: "400px",
-        locale: "ru",
-        importanceFilter: "-1,0,1",
-        currencyFilter: "USD,EUR,GBP,JPY"
-      });
-      calendarRef.current.appendChild(script);
-    }
-  }, []);
-
-  // BINANCE WEBSOCKET ва СИМУЛЯЦИЯ (Лайв Трейдлар ва Ордер Бук)
-  useEffect(() => {
-    if (selectedPair.isCrypto) {
-      // Binance WebSocket орқали жонли тикли маълумот
-      const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${selectedPair.symbol}@trade`);
-
-      ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        const price = parseFloat(data.p).toFixed(2);
-        const qty = parseFloat(data.q).toFixed(4);
-        const isBuyerMaker = data.m; // true = SELL, false = BUY
-        const side = isBuyerMaker ? "SELL" : "BUY";
-        const time = new Date(data.T).toLocaleTimeString();
-
-        setCurrentPrice(price);
-
-        // Жонли трейдлар оқими
-        setRecentTrades((prev) => [
-          { id: data.t, price, qty, side, time },
-          ...prev.slice(0, 11),
-        ]);
-
-        // Ордер бук симуляцияси
-        const basePrice = parseFloat(price);
-        const newAsks = Array.from({ length: 6 }, (_, i) => ({
-          price: (basePrice + (i + 1) * 2.5).toFixed(2),
-          qty: (Math.random() * 1.5 + 0.1).toFixed(3),
-        })).reverse();
-
-        const newBids = Array.from({ length: 6 }, (_, i) => ({
-          price: (basePrice - (i + 1) * 2.5).toFixed(2),
-          qty: (Math.random() * 1.5 + 0.1).toFixed(3),
-        }));
-
-        setAsks(newAsks);
-        setBids(newBids);
-      };
-
-      return () => ws.close();
-    } else {
-      // Forex / Gold учун жонли оқим симуляцияси
-      const base = selectedPair.id === "XAUUSD" ? 2650.0 : 1.0850;
-      const interval = setInterval(() => {
-        const randomDiff = (Math.random() - 0.5) * (selectedPair.id === "XAUUSD" ? 1.5 : 0.001);
-        const price = (base + randomDiff).toFixed(selectedPair.id === "XAUUSD" ? 2 : 4);
-        const qty = (Math.random() * 10 + 0.5).toFixed(2);
-        const side = Math.random() > 0.5 ? "BUY" : "SELL";
-        const time = new Date().toLocaleTimeString();
-
-        setCurrentPrice(price);
-
-        setRecentTrades((prev) => [
-          { id: Date.now(), price, qty, side, time },
-          ...prev.slice(0, 11),
-        ]);
-
-        const baseP = parseFloat(price);
-        const step = selectedPair.id === "XAUUSD" ? 0.5 : 0.0003;
-
-        setAsks(Array.from({ length: 6 }, (_, i) => ({
-          price: (baseP + (i + 1) * step).toFixed(selectedPair.id === "XAUUSD" ? 2 : 4),
-          qty: (Math.random() * 15 + 1).toFixed(2),
-        })).reverse());
-
-        setBids(Array.from({ length: 6 }, (_, i) => ({
-          price: (baseP - (i + 1) * step).toFixed(selectedPair.id === "XAUUSD" ? 2 : 4),
-          qty: (Math.random() * 15 + 1).toFixed(2),
-        })));
-      }, 1000);
-
-      return () => clearInterval(interval);
-    }
-  }, [selectedPair]);
-
-  const myCustomSignal = {
-    title: "Менинг Шахсий Таҳлилим",
-    type: "BUY (СОТИБ ОЛИШ)",
-    entry: "4664.30",
-    tp: "4690.00",
-    sl: "4650.00",
-    description: "Бозорда кучли харидорлар босими сезилмоқда. Шамлар ўсиш томон шаклланмоқда!",
-    image: "https://i.ibb.co/cSCgvJQX/image.png",
+    setIsSubmitted(true);
+    setTimeout(() => {
+      setIsSubmitted(false);
+      setFormData({ name: "", phone: "", message: "" });
+    }, 4000);
   };
 
   return (
     <div style={{ padding: "20px", background: "#0b0e14", color: "#fff", minHeight: "100vh", fontFamily: "sans-serif" }}>
       
-      {/* Шапка / Хедер */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", marginBottom: "15px" }}>
-        <h2>⚡ BINANCE STYLE LIVE TRADING TERMINAL</h2>
-        <div style={{ background: "#1e222d", padding: "8px 14px", borderRadius: "8px", display: "flex", alignItems: "center", gap: "10px", border: "1px solid #2a2e39" }}>
-          <span style={{ fontSize: "12px", color: "#8a94a6" }}>Бозор Кайфияти (Fear & Greed):</span>
-          <span style={{ background: "#26a69a", color: "#fff", padding: "3px 8px", borderRadius: "4px", fontSize: "12px", fontWeight: "bold" }}>
-            72 (Кучли Ишонч / Greed)
-          </span>
+      {/* Сайт Сарлавҳаси */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", marginBottom: "25px", borderBottom: "1px solid #2a2e39", paddingBottom: "15px" }}>
+        <div>
+          <h2 style={{ margin: 0, color: "#4f46e5" }}>🏠 MODERN REALTOR & PROPERTY HUB</h2>
+          <p style={{ margin: "5px 0 0 0", fontSize: "13px", color: "#8a94a6" }}>Тошкент шаҳри ва вилоятидаги энг ишончли кўчмас мулк объектлари</p>
+        </div>
+        <div style={{ background: "#1e222d", padding: "10px 16px", borderRadius: "8px", border: "1px solid #2a2e39" }}>
+          <span style={{ fontSize: "12px", color: "#8a94a6" }}>Алоқа маркази: </span>
+          <span style={{ color: "#22c55e", fontWeight: "bold", fontSize: "14px" }}>+998 (90) 123-45-67</span>
         </div>
       </div>
 
-      {/* Валюта тугмалари */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap" }}>
-        {PAIRS.map((pair) => (
+      {/* Категориялар тугмалари */}
+      <div style={{ display: "flex", gap: "10px", marginBottom: "25px", flexWrap: "wrap" }}>
+        {["Барчаси", "Квартира", "Ҳовли", "Офис", "Дизайн лойиҳа"].map((cat) => (
           <button
-            key={pair.id}
-            onClick={() => setSelectedPair(pair)}
+            key={cat}
+            onClick={() => setSelectedCategory(cat)}
             style={{
-              padding: "8px 16px",
+              padding: "8px 18px",
               borderRadius: "6px",
               border: "none",
-              background: selectedPair.id === pair.id ? "#f0b90b" : "#1e222d",
-              color: selectedPair.id === pair.id ? "#000" : "#fff",
+              background: selectedCategory === cat ? "#4f46e5" : "#1e222d",
+              color: "#fff",
               cursor: "pointer",
-              fontWeight: "bold"
+              fontWeight: "bold",
+              transition: "0.2s"
             }}
           >
-            {pair.name}
+            {cat}
           </button>
         ))}
       </div>
 
-      {/* График ва Шахсий сигнал */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "20px", marginBottom: "25px" }}>
-        <div style={{ height: "480px", background: "#131722", borderRadius: "8px", overflow: "hidden" }}>
-          <div className="tradingview-widget-container" ref={containerRef} style={{ height: "100%", width: "100%" }}></div>
-        </div>
-
-        <div style={{ background: "#131722", padding: "20px", borderRadius: "8px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-              <h3 style={{ margin: 0, color: "#f0b90b", fontSize: "18px" }}>{myCustomSignal.title}</h3>
-              <span style={{ background: "#26a69a", padding: "4px 10px", borderRadius: "4px", fontWeight: "bold", fontSize: "12px" }}>
-                {myCustomSignal.type}
-              </span>
-            </div>
-
-            <div onClick={() => setIsModalOpen(true)} style={{ cursor: "pointer", textAlign: "center", marginBottom: "12px" }}>
-              <img 
-                src={myCustomSignal.image} 
-                alt="Analysis" 
-                style={{ width: "100%", height: "160px", objectFit: "contain", background: "#000", borderRadius: "6px", border: "1px solid #2a2e39" }} 
-              />
-              <span style={{ fontSize: "11px", color: "#f0b90b", display: "block", marginTop: "4px" }}>🔍 Катта қилиб кўриш учун босинг</span>
-            </div>
-
-            <p style={{ color: "#ffd54f", fontSize: "13px", lineHeight: "1.4", marginBottom: "15px", background: "#1e222d", padding: "10px", borderRadius: "6px" }}>
-              {myCustomSignal.description}
-            </p>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", textAlign: "center" }}>
-              <div style={{ background: "#1e222d", padding: "6px", borderRadius: "6px" }}>
-                <span style={{ fontSize: "10px", color: "#8a94a6" }}>ENTRY</span>
-                <div style={{ fontWeight: "bold", fontSize: "13px" }}>{myCustomSignal.entry}</div>
-              </div>
-              <div style={{ background: "#1e222d", padding: "6px", borderRadius: "6px" }}>
-                <span style={{ fontSize: "10px", color: "#26a69a" }}>TP</span>
-                <div style={{ fontWeight: "bold", fontSize: "13px", color: "#26a69a" }}>{myCustomSignal.tp}</div>
-              </div>
-              <div style={{ background: "#1e222d", padding: "6px", borderRadius: "6px" }}>
-                <span style={{ fontSize: "10px", color: "#ef5350" }}>SL</span>
-                <div style={{ fontWeight: "bold", fontSize: "13px", color: "#ef5350" }}>{myCustomSignal.sl}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 🔥 BINANCE STYLE: БИРЖА СТАКАНИ ВА ЛАЙВ ТРЕЙДЛАР (ORDER BOOK & LIVE TRADES) */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "20px", marginBottom: "25px" }}>
-        
-        {/* BINANCE ORDER BOOK (Ордерлар Китоби) */}
-        <div style={{ background: "#131722", padding: "15px", borderRadius: "8px" }}>
-          <h3 style={{ marginTop: 0, fontSize: "15px", color: "#f0b90b" }}>📊 Ордерлар Китоби (Order Book)</h3>
-          
-          <div style={{ display: "flex", justifyContent: "space-between", color: "#8a94a6", fontSize: "11px", marginBottom: "8px", borderBottom: "1px solid #2a2e39", pb: "4px" }}>
-            <span>Нарх (Price)</span>
-            <span>Миқдор (Size)</span>
-          </div>
-
-          {/* Сотувчилар - Қизил (Asks) */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
-            {asks.map((ask, idx) => (
-              <div key={idx} style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", background: "rgba(239, 83, 80, 0.1)", padding: "2px 4px", borderRadius: "3px" }}>
-                <span style={{ color: "#ef5350", fontWeight: "bold" }}>{ask.price}</span>
-                <span style={{ color: "#d1d4dc" }}>{ask.qty}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Жонли Текширув Нархи */}
-          <div style={{ textAlign: "center", padding: "10px 0", margin: "8px 0", background: "#1e222d", borderRadius: "6px", border: "1px solid #2a2e39" }}>
-            <span style={{ fontSize: "18px", fontWeight: "bold", color: "#26a69a" }}>{currentPrice} </span>
-            <span style={{ fontSize: "12px", color: "#26a69a" }}>{priceChange}</span>
-          </div>
-
-          {/* Харидорлар - Яшил (Bids) */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
-            {bids.map((bid, idx) => (
-              <div key={idx} style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", background: "rgba(38, 166, 154, 0.1)", padding: "2px 4px", borderRadius: "3px" }}>
-                <span style={{ color: "#26a69a", fontWeight: "bold" }}>{bid.price}</span>
-                <span style={{ color: "#d1d4dc" }}>{bid.qty}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* BINANCE LIVE TRADES (Жонли Харид ва Сотувлар Оқими) */}
-        <div style={{ background: "#131722", padding: "15px", borderRadius: "8px" }}>
-          <h3 style={{ marginTop: 0, fontSize: "15px", color: "#f0b90b" }}>🔥 Жонли Трейдлар (Live Market Trades)</h3>
-          
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", color: "#8a94a6", fontSize: "11px", marginBottom: "8px", borderBottom: "1px solid #2a2e39", paddingBottom: "4px" }}>
-            <span>Нарх</span>
-            <span>Миқдор</span>
-            <span style={{ textAlign: "right" }}>Вақт</span>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "4px", maxHeight: "330px", overflowY: "hidden" }}>
-            {recentTrades.map((trade) => (
+      {/* Объектлар Сеткатоси (Grid) */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px", marginBottom: "30px" }}>
+        {filteredProperties.map((prop) => (
+          <div key={prop.id} style={{ background: "#131722", borderRadius: "10px", overflow: "hidden", border: "1px solid #2a2e39", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+            <div>
+              {/* Расмни босганда катташади */}
               <div 
-                key={trade.id} 
+                onClick={() => setActiveImage(prop.image)} 
+                style={{ cursor: "pointer", position: "relative", height: "180px", overflow: "hidden" }}
+              >
+                <img 
+                  src={prop.image} 
+                  alt={prop.title} 
+                  style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.3s" }} 
+                />
+                <span style={{ position: "absolute", top: "10px", right: "10px", background: "rgba(0,0,0,0.7)", padding: "4px 8px", borderRadius: "4px", fontSize: "12px", fontWeight: "bold", color: "#4f46e5" }}>
+                  {prop.price}
+                </span>
+                <span style={{ position: "absolute", bottom: "8px", left: "8px", background: "rgba(0,0,0,0.6)", padding: "2px 6px", borderRadius: "4px", fontSize: "10px", color: "#ccc" }}>
+                  🔍 Катта қилиб кўриш
+                </span>
+              </div>
+
+              <div style={{ padding: "15px" }}>
+                <h3 style={{ margin: "0 0 8px 0", fontSize: "16px", color: "#fff" }}>{prop.title}</h3>
+                <p style={{ margin: "0 0 10px 0", fontSize: "12px", color: "#8a94a6" }}>📍 {prop.location}</p>
+                <p style={{ margin: "0 0 12px 0", fontSize: "13px", color: "#cbd5e1", lineHeight: "1.4" }}>{prop.description}</p>
+                
+                <div style={{ display: "flex", gap: "10px", marginBottom: "15px", fontSize: "12px" }}>
+                  <span style={{ background: "#1e222d", padding: "4px 8px", borderRadius: "4px" }}>🛏 Хона: {prop.rooms}</span>
+                  <span style={{ background: "#1e222d", padding: "4px 8px", borderRadius: "4px" }}>📐 Майдон: {prop.area}</span>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ padding: "0 15px 15px 15px" }}>
+              <a 
+                href={prop.url} 
+                target="_blank" 
+                rel="noopener noreferrer"
                 style={{ 
-                  display: "grid", 
-                  gridTemplateColumns: "1fr 1fr 1fr", 
-                  fontSize: "12px", 
-                  padding: "3px 0",
-                  borderBottom: "1px solid #1e222d"
+                  display: "block", 
+                  textAlign: "center", 
+                  background: "#4f46e5", 
+                  color: "#fff", 
+                  padding: "8px", 
+                  borderRadius: "6px", 
+                  textDecoration: "none", 
+                  fontSize: "13px",
+                  fontWeight: "bold" 
                 }}
               >
-                <span style={{ color: trade.side === "BUY" ? "#26a69a" : "#ef5350", fontWeight: "bold" }}>
-                  {trade.price}
-                </span>
-                <span style={{ color: "#fff" }}>{trade.qty}</span>
-                <span style={{ textAlign: "right", color: "#8a94a6", fontSize: "11px" }}>{trade.time}</span>
-              </div>
+                Батафсил кўриш (Манба 🔗)
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Пастки қисм: Янгиликлар ва Мурожаат Формаси */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "20px" }}>
+        
+        {/* Кўчмас Мулк Янгиликлари */}
+        <div style={{ background: "#131722", padding: "20px", borderRadius: "10px", border: "1px solid #2a2e39" }}>
+          <h3 style={{ marginTop: 0, fontSize: "16px", color: "#f59e0b" }}>📰 Бозор Янгиликлари & Қонунчилик</h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "15px" }}>
+            {REAL_ESTATE_NEWS.map((news) => (
+              <a 
+                key={news.id} 
+                href={news.url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{ 
+                  background: "#1e222d", 
+                  padding: "10px", 
+                  borderRadius: "6px", 
+                  borderLeft: "3px solid #4f46e5",
+                  textDecoration: "none",
+                  display: "block"
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#8a94a6", marginBottom: "4px" }}>
+                  <span>{news.time} 🔗</span>
+                  <span>Муҳимлик: {news.impact}</span>
+                </div>
+                <div style={{ fontSize: "13px", color: "#fff" }}>{news.text}</div>
+              </a>
             ))}
           </div>
         </div>
 
+        {/* Уй сотиб олиш ёки сотиш учун мурожаат формаси */}
+        <div style={{ background: "#131722", padding: "20px", borderRadius: "10px", border: "1px solid #2a2e39" }}>
+          <h3 style={{ marginTop: 0, fontSize: "16px", color: "#22c55e" }}>📞 Мутахассисдан Бепул Маслаҳат Олиш</h3>
+          
+          {isSubmitted ? (
+            <div style={{ background: "rgba(34, 197, 94, 0.2)", padding: "20px", borderRadius: "6px", textAlign: "center", color: "#22c55e", marginTop: "15px" }}>
+              ✅ Хабарингиз қабул қилинди! Тез орада реалторомиз сиз билан боғланади.
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "15px" }}>
+              <input 
+                type="text" 
+                placeholder="Исминггиз" 
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                style={{ padding: "10px", borderRadius: "6px", border: "1px solid #2a2e39", background: "#1e222d", color: "__fff" }}
+              />
+              <input 
+                type="text" 
+                placeholder="Телефон рақамингиз (+998 ...)" 
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                style={{ padding: "10px", borderRadius: "6px", border: "1px solid #2a2e39", background: "#1e222d", color: "#fff" }}
+              />
+              <textarea 
+                placeholder="Қандай уй ёки квартира қидирмоқдасиз?" 
+                rows="3"
+                value={formData.message}
+                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                style={{ padding: "10px", borderRadius: "6px", border: "1px solid #2a2e39", background: "#1e222d", color: "#fff", resize: "none" }}
+              ></textarea>
+              <button 
+                type="submit" 
+                style={{ background: "#22c55e", color: "#000", border: "none", padding: "10px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}
+              >
+                Ариза юбориш
+              </button>
+            </form>
+          )}
+        </div>
+
       </div>
 
-      {/* Иқтисодий Тақвим */}
-      <div style={{ background: "#131722", padding: "15px", borderRadius: "8px" }}>
-        <h3 style={{ marginTop: 0, fontSize: "15px", color: "#2962ff" }}>📅 Иқтисодий Тақвим (Economic Calendar)</h3>
-        <div className="tradingview-widget-container" ref={calendarRef} style={{ width: "100%", height: "400px" }}></div>
-      </div>
-
-      {/* Расмни каттайтириш Модали */}
-      {isModalOpen && (
+      {/* Расмни тўлиқ экранда кўрсатиш модали (Lightbox) */}
+      {activeImage && (
         <div 
-          onClick={() => setIsModalOpen(false)}
+          onClick={() => setActiveImage(null)}
           style={{
-            position: "fixed",
-            top: 0, left: 0, width: "100vw", height: "100vh",
-            background: "rgba(0,0,0,0.9)",
-            display: "flex", justifyContent: "center", alignItems: "center",
+            position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
+            background: "rgba(0,0,0,0.9)", display: "flex", justifyContent: "center", alignItems: "center",
             zIndex: 1000, cursor: "pointer"
           }}
         >
-          <img src={myCustomSignal.image} alt="Zoomed" style={{ maxWidth: "90%", maxHeight: "85vh", borderRadius: "8px" }} />
+          <div style={{ textAlign: "center" }}>
+            <img src={activeImage} alt="Zoomed" style={{ maxWidth: "90vw", maxHeight: "85vh", borderRadius: "8px", objectFit: "contain" }} />
+            <div style={{ color: "#fff", marginTop: "10px", fontSize: "14px" }}>Ёпиш учун исталган жойга босинг ✕</div>
+          </div>
         </div>
       )}
 
