@@ -8,6 +8,7 @@ const PAIRS = [
   { id: "USDCAD", name: "USD/CAD", tvSymbol: "FX:USDCAD" },
   { id: "USDCHF", name: "USD/CHF", tvSymbol: "FX:USDCHF" },
   { id: "XAUUSD", name: "XAU/USD (Gold)", tvSymbol: "OANDA:XAUUSD" },
+  { id: "BTCUSD", name: "Bitcoin", tvSymbol: "CRYPTO:BTCUSD" },
 ];
 
 export default function App() {
@@ -15,7 +16,9 @@ export default function App() {
   const [liveOrders, setLiveOrders] = useState([]);
   const [newsList, setNewsList] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
   const containerRef = useRef();
+  const calendarRef = useRef();
 
   // TradingView жонли графиги
   useEffect(() => {
@@ -41,6 +44,27 @@ export default function App() {
       containerRef.current.appendChild(script);
     }
   }, [selectedPair]);
+
+  // TradingView Иқтисодий тақвими виджети
+  useEffect(() => {
+    if (calendarRef.current) {
+      calendarRef.current.innerHTML = "";
+      const script = document.createElement("script");
+      script.src = "https://s3.tradingview.com/external-embedding/embed-widget-events.js";
+      script.type = "text/javascript";
+      script.async = true;
+      script.innerHTML = JSON.stringify({
+        colorTheme: "dark",
+        isTransparent: false,
+        width: "100%",
+        height: "420px",
+        locale: "ru",
+        importanceFilter: "-1,0,1",
+        currencyFilter: "USD,EUR,GBP,JPY"
+      });
+      calendarRef.current.appendChild(script);
+    }
+  }, []);
 
   // Халқаро жонли ордерлар ва янгиликлар
   useEffect(() => {
@@ -109,9 +133,19 @@ export default function App() {
 
   return (
     <div style={{ padding: "20px", background: "#0b0e14", color: "#fff", minHeight: "100vh", fontFamily: "sans-serif" }}>
-      <h2>Менинг Савдо Терминалим & Халқаро Оқимлар</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", marginBottom: "15px" }}>
+        <h2 style={{ margin: 0 }}>Менинг Савдо Терминалим & Халқаро Оқимлар</h2>
+        
+        {/* 3-ФИКР: Қўрқув ва Очкўзлик Индекси (Fear & Greed Index) */}
+        <div style={{ background: "#1e222d", padding: "8px 14px", borderRadius: "8px", display: "flex", alignItems: "center", gap: "10px", border: "1px solid #2a2e39" }}>
+          <span style={{ fontSize: "12px", color: "#8a94a6" }}>Бозор Кайфияти (Fear & Greed):</span>
+          <span style={{ background: "#26a69a", color: "#fff", padding: "3px 8px", borderRadius: "4px", fontSize: "12px", fontWeight: "bold" }}>
+            68 (Ишонч / Greed)
+          </span>
+        </div>
+      </div>
 
-      {/* Валюта тугмалари */}
+      {/* Валюта ва Активлар тугмалари */}
       <div style={{ display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap" }}>
         {PAIRS.map((pair) => (
           <button
@@ -182,6 +216,12 @@ export default function App() {
           </div>
         </div>
 
+      </div>
+
+      {/* Ўрта қисм: 2-ФИКР - Иқтисодий тақвим виджети */}
+      <div style={{ background: "#131722", padding: "15px", borderRadius: "8px", marginBottom: "25px" }}>
+        <h3 style={{ marginTop: 0, fontSize: "16px", color: "#2962ff" }}>📅 Жонли Иқтисодий Тақвим (Economic Calendar)</h3>
+        <div className="tradingview-widget-container" ref={calendarRef} style={{ width: "100%", height: "420px" }}></div>
       </div>
 
       {/* Пастки қисм: Халқаро ордерлар ва Янгиликлар */}
@@ -258,7 +298,7 @@ export default function App() {
             height: "100vh",
             background: "rgba(0, 0, 0, 0.9)",
             display: "flex",
-            justifyContent: "center",
+            justify5Content: "center",
             alignItems: "center",
             zIndex: 1000,
             cursor: "pointer"
