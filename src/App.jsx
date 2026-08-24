@@ -1,22 +1,19 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import React, { useState, useEffect, useRef } from "react";
 
 const PAIRS = [
-  { id: "EURUSD", name: "EUR/USD", tvSymbol: "FX:EURUSD", yahooSymbol: "EURUSD=X" },
-  { id: "GBPUSD", name: "GBP/USD", tvSymbol: "FX:GBPUSD", yahooSymbol: "GBPUSD=X" },
-  { id: "USDJPY", name: "USD/JPY", tvSymbol: "FX:USDJPY", yahooSymbol: "JPY=X" },
-  { id: "AUDUSD", name: "AUD/USD", tvSymbol: "FX:AUDUSD", yahooSymbol: "AUDUSD=X" },
-  { id: "USDCAD", name: "USD/CAD", tvSymbol: "FX:USDCAD", yahooSymbol: "CAD=X" },
-  { id: "USDCHF", name: "USD/CHF", tvSymbol: "FX:USDCHF", yahooSymbol: "CHF=X" },
-  { id: "XAUUSD", name: "XAU/USD (Gold)", tvSymbol: "OANDA:XAUUSD", yahooSymbol: "GC=F" },
+  { id: "EURUSD", name: "EUR/USD", tvSymbol: "FX:EURUSD" },
+  { id: "GBPUSD", name: "GBP/USD", tvSymbol: "FX:GBPUSD" },
+  { id: "USDJPY", name: "USD/JPY", tvSymbol: "FX:USDJPY" },
+  { id: "AUDUSD", name: "AUD/USD", tvSymbol: "FX:AUDUSD" },
+  { id: "USDCAD", name: "USD/CAD", tvSymbol: "FX:USDCAD" },
+  { id: "USDCHF", name: "USD/CHF", tvSymbol: "FX:USDCHF" },
+  { id: "XAUUSD", name: "XAU/USD (Gold)", tvSymbol: "OANDA:XAUUSD" },
 ];
 
 export default function App() {
   const [selectedPair, setSelectedPair] = useState(PAIRS[0]);
-  const [rateData, setRateData] = useState(null);
   const [liveOrders, setLiveOrders] = useState([]);
-  const [sentiment, setSentiment] = useState({ buyers: 55, sellers: 45 });
-  const [loading, setLoading] = useState(true);
+  const [newsList, setNewsList] = useState([]);
   const containerRef = useRef();
 
   // TradingView жонли графиги
@@ -44,55 +41,13 @@ export default function App() {
     }
   }, [selectedPair]);
 
-  // Сигнал ва даражаларни ҳисоблаш
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${selectedPair.yahooSymbol}?range=2d&interval=15m`;
-      const resRate = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`);
-      const dataJson = await resRate.json();
-      const dataRate = JSON.parse(dataJson.contents);
-      const result = dataRate.chart?.result?.[0];
-
-      if (result) {
-        const quote = result.indicators.quote[0];
-        const prices = quote.close.filter((p) => p !== null);
-        const currentPrice = prices[prices.length - 1];
-        const prevPrice = prices[prices.length - 2] || currentPrice;
-        
-        const sma14 = prices.slice(-14).reduce((a, b) => a + b, 0) / Math.min(prices.length, 14);
-        const isBuy = currentPrice > sma14;
-
-        const step = selectedPair.id === "XAUUSD" ? 8.0 : selectedPair.id.includes("JPY") ? 0.50 : 0.0030;
-        const decimals = selectedPair.id === "XAUUSD" || selectedPair.id.includes("JPY") ? 2 : 4;
-
-        setRateData({
-          price: currentPrice.toFixed(decimals),
-          signalType: isBuy ? "STRONG BUY (Кучли харид)" : "STRONG SELL (Кучли сотув)",
-          signalColor: isBuy ? "#26a69a" : "#ef5350",
-          entryPrice: currentPrice.toFixed(decimals),
-          tpPrice: (isBuy ? currentPrice + step : currentPrice - step).toFixed(decimals),
-          slPrice: (isBuy ? currentPrice - step * 0.5 : currentPrice + step * 0.5).toFixed(decimals),
-        });
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedPair]);
-
+  // Халқаро жонли ордерлар ва янгиликлар
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  // Жонли ордерлар ва Sentiment янгиланиши
-  useEffect(() => {
-    const interval = setInterval(() => {
+    const orderInterval = setInterval(() => {
       const types = ["BUY LIMIT", "SELL LIMIT", "BUY STOP", "SELL STOP"];
       const randomType = types[Math.floor(Math.random() * types.length)];
-      const randomLot = (Math.random() * 50 + 5).toFixed(2);
-      const randomTrader = ["Whale Trader", "Institutional Fund", "Prop Firm", "Bank Liquidity"][Math.floor(Math.random() * 4)];
+      const randomLot = (Math.random() * 80 + 10).toFixed(2);
+      const randomTrader = ["JPMorgan Chase", "Goldman Sachs", "Citibank", "Whale Fund", "Deutsche Bank"][Math.floor(Math.random() * 5)];
       
       const newOrder = {
         id: Date.now(),
@@ -100,24 +55,37 @@ export default function App() {
         trader: randomTrader,
         type: randomType,
         lot: randomLot,
+        pair: selectedPair.name,
       };
 
       setLiveOrders((prev) => [newOrder, ...prev.slice(0, 4)]);
-      const buyersPercent = Math.floor(Math.random() * 40) + 30;
-      setSentiment({ buyers: buyersPercent, sellers: 100 - buyersPercent });
-    }, 4000);
+    }, 3500);
 
-    return () => clearInterval(interval);
+    const sampleNews = [
+      { id: 1, time: "Янги", text: "ФРС ставкалар бўйича навбатдаги баёнотини эълон қилди.", impact: "Юқори" },
+      { id: 2, time: "10 дақиқа олдин", text: "Олтин нархига инфляция маълумотлари таъсир кўрсатмоқда.", impact: "Ўрта" },
+      { id: 3, time: "25 дақиқа олдин", text: "Европа марказий банки валюта сиёсатини ўзгаришсиз қолдирди.", impact: "Юқори" },
+      { id: 4, time: "40 дақиқа олдин", text: "Нефть бозорида йирик ҳажмдаги сотувлар кузатилмоқда.", impact: "Паст" },
+    ];
+    setNewsList(sampleNews);
+
+    return () => clearInterval(orderInterval);
   }, [selectedPair]);
 
-  const pieData = [
-    { name: "Харидорлар", value: sentiment.buyers, color: "#26a69a" },
-    { name: "Сотувчилар", value: sentiment.sellers, color: "#ef5350" },
-  ];
+  // Сизнинг шахсий сигналингиз ва фикрингиз
+  const myCustomSignal = {
+    title: "Менинг шахсий таҳлилим",
+    type: "BUY (СОТИБ ОЛИШ)",
+    entry: "4664.30",
+    tp: "4690.00",
+    sl: "4650.00",
+    description: "Жигарлар, шошилмайлик! Яқинда янгилик чиқади, ўшанда тепага отиш эҳтимоли 80%га тенг.",
+    image: "https://i.ibb.co/cSCgvJQX/image.png",
+  };
 
   return (
     <div style={{ padding: "20px", background: "#0b0e14", color: "#fff", minHeight: "100vh", fontFamily: "sans-serif" }}>
-      <h2>Forex Ultimate Live Terminal</h2>
+      <h2>Мening Савдо Терминалим & Халқаро Оқимлар</h2>
 
       {/* Валюта тугмалари */}
       <div style={{ display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap" }}>
@@ -140,84 +108,101 @@ export default function App() {
         ))}
       </div>
 
-      {/* Сигнал Панели */}
-      <div style={{ background: "#1e222d", padding: "15px", borderRadius: "8px", marginBottom: "15px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
-        <div>
-          <h3 style={{ margin: 0, fontSize: "22px" }}>{selectedPair.name}: {rateData?.price || "Юкланмоқда..."}</h3>
-        </div>
-        <div style={{ background: rateData?.signalColor || "#2962ff", padding: "10px 20px", borderRadius: "6px", fontWeight: "bold" }}>
-          {rateData?.signalType || "Таҳлил қилинмоқда..."}
-        </div>
-      </div>
-
-      {/* Кириш / TP / SL Зоналари */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "15px", marginBottom: "20px" }}>
-        <div style={{ background: "#131722", padding: "15px", borderRadius: "8px", borderLeft: "4px solid #2962ff" }}>
-          <span style={{ color: "#8a94a6", fontSize: "12px" }}>ENTRY (КИРИШ)</span>
-          <h4 style={{ margin: "5px 0 0 0" }}>{rateData?.entryPrice || "---"}</h4>
-        </div>
-        <div style={{ background: "#131722", padding: "15px", borderRadius: "8px", borderLeft: "4px solid #26a69a" }}>
-          <span style={{ color: "#8a94a6", fontSize: "12px" }}>TAKE PROFIT (ФОЙДА)</span>
-          <h4 style={{ margin: "5px 0 0 0", color: "#26a69a" }}>{rateData?.tpPrice || "---"}</h4>
-        </div>
-        <div style={{ background: "#131722", padding: "15px", borderRadius: "8px", borderLeft: "4px solid #ef5350" }}>
-          <span style={{ color: "#8a94a6", fontSize: "12px" }}>STOP LOSS (ЗАРАР)</span>
-          <h4 style={{ margin: "5px 0 0 0", color: "#ef5350" }}>{rateData?.slPrice || "---"}</h4>
-        </div>
-      </div>
-
-      {/* TradingView Жонли График ва Думалоқ Sentiment */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "20px", marginBottom: "25px" }}>
+      {/* График ва Шахсий Сигнал */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "20px", marginBottom: "25px" }}>
+        
+        {/* TradingView Графиги */}
         <div style={{ height: "480px", background: "#131722", borderRadius: "8px", overflow: "hidden" }}>
           <div className="tradingview-widget-container" ref={containerRef} style={{ height: "100%", width: "100%" }}></div>
         </div>
 
-        <div style={{ background: "#131722", padding: "20px", borderRadius: "8px", textAlign: "center", height: "440px" }}>
-          <h4 style={{ margin: "0 0 10px 0", color: "#8a94a6" }}>Бозор кайфияти (Sentiment - %)</h4>
-          <div style={{ height: "260px", width: "100%" }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={pieData} innerRadius={60} outerRadius={90} paddingAngle={5} dataKey="value">
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-around", marginTop: "15px", fontWeight: "bold" }}>
-            <span style={{ color: "#26a69a" }}>🟢 Харидорлар: {sentiment.buyers}%</span>
-            <span style={{ color: "#ef5350" }}>🔴 Сотувчилар: {sentiment.sellers}%</span>
+        {/* Шахсий Сигнал ва Расм */}
+        <div style={{ background: "#131722", padding: "20px", borderRadius: "8px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+              <h3 style={{ margin: 0, color: "#2962ff", fontSize: "18px" }}>{myCustomSignal.title}</h3>
+              <span style={{ background: "#26a69a", padding: "4px 10px", borderRadius: "4px", fontWeight: "bold", fontSize: "12px" }}>
+                {myCustomSignal.type}
+              </span>
+            </div>
+
+            {/* Таҳлил расми */}
+            <img 
+              src={myCustomSignal.image} 
+              alt="Analysis" 
+              style={{ width: "100%", height: "180px", objectFit: "cover", borderRadius: "6px", marginBottom: "12px", border: "1px solid #2a2e39" }} 
+            />
+
+            {/* Сизнинг фикрингиз */}
+            <p style={{ color: "#ffd54f", fontSize: "14px", lineHeight: "1.5", marginBottom: "15px", fontWeight: "bold", background: "#1e222d", padding: "10px", borderRadius: "6px" }}>
+              {myCustomSignal.description}
+            </p>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", textAlign: "center", marginBottom: "10px" }}>
+              <div style={{ background: "#1e222d", padding: "6px", borderRadius: "6px" }}>
+                <span style={{ fontSize: "10px", color: "#8a94a6" }}>ENTRY</span>
+                <div style={{ fontWeight: "bold", fontSize: "13px" }}>{myCustomSignal.entry}</div>
+              </div>
+              <div style={{ background: "#1e222d", padding: "6px", borderRadius: "6px" }}>
+                <span style={{ fontSize: "10px", color: "#26a69a" }}>TP</span>
+                <div style={{ fontWeight: "bold", fontSize: "13px", color: "#26a69a" }}>{myCustomSignal.tp}</div>
+              </div>
+              <div style={{ background: "#1e222d", padding: "6px", borderRadius: "6px" }}>
+                <span style={{ fontSize: "10px", color: "#ef5350" }}>SL</span>
+                <div style={{ fontWeight: "bold", fontSize: "13px", color: "#ef5350" }}>{myCustomSignal.sl}</div>
+              </div>
+            </div>
           </div>
         </div>
+
       </div>
 
-      {/* Жонли Ордерлар Блоки */}
-      <div style={{ background: "#131722", padding: "15px", borderRadius: "8px" }}>
-        <h3 style={{ marginTop: 0, fontSize: "18px", color: "#2962ff" }}>Live Institutional Order Flow</h3>
-        <table style={{ width: "100%", textAlign: "left", borderCollapse: "collapse", fontSize: "14px" }}>
-          <thead>
-            <tr style={{ borderBottom: "1px solid #2a2e39", color: "#8a94a6" }}>
-              <th style={{ padding: "8px" }}>Вақт</th>
-              <th style={{ padding: "8px" }}>Иштирокчи</th>
-              <th style={{ padding: "8px" }}>Тип</th>
-              <th style={{ padding: "8px" }}>Лот (Объем)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {liveOrders.map((order) => (
-              <tr key={order.id} style={{ borderBottom: "1px solid #1e222d" }}>
-                <td style={{ padding: "8px" }}>{order.time}</td>
-                <td style={{ padding: "8px", color: "#e0e0e0" }}>{order.trader}</td>
-                <td style={{ padding: "8px", color: order.type.includes("BUY") ? "#26a69a" : "#ef5350", fontWeight: "bold" }}>
-                  {order.type}
-                </td>
-                <td style={{ padding: "8px" }}>{order.lot} LOT</td>
+      {/* Пастки қисм: Халқаро ордерлар ва Янгиликлар */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "20px" }}>
+        
+        {/* Жонли Халқаро Ордерлар */}
+        <div style={{ background: "#131722", padding: "15px", borderRadius: "8px" }}>
+          <h3 style={{ marginTop: 0, fontSize: "16px", color: "#2962ff" }}>🌐 Live Institutional Order Flow</h3>
+          <table style={{ width: "100%", textAlign: "left", borderCollapse: "collapse", fontSize: "13px" }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid #2a2e39", color: "#8a94a6" }}>
+                <th style={{ padding: "6px" }}>Вақт</th>
+                <th style={{ padding: "6px" }}>Банк / Фонд</th>
+                <th style={{ padding: "6px" }}>Тип</th>
+                <th style={{ padding: "6px" }}>Лот</th>
               </tr>
+            </thead>
+            <tbody>
+              {liveOrders.map((order) => (
+                <tr key={order.id} style={{ borderBottom: "1px solid #1e222d" }}>
+                  <td style={{ padding: "6px" }}>{order.time}</td>
+                  <td style={{ padding: "6px", color: "#e0e0e0" }}>{order.trader}</td>
+                  <td style={{ padding: "6px", color: order.type.includes("BUY") ? "#26a69a" : "#ef5350", fontWeight: "bold" }}>
+                    {order.type}
+                  </td>
+                  <td style={{ padding: "6px" }}>{order.lot} LOT</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Халқаро Янгиликлар */}
+        <div style={{ background: "#131722", padding: "15px", borderRadius: "8px" }}>
+          <h3 style={{ marginTop: 0, fontSize: "16px", color: "#ff9800" }}>📰 Халқаро Молиявий Янгиликлар</h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {newsList.map((news) => (
+              <div key={news.id} style={{ background: "#1e222d", padding: "10px", borderRadius: "6px", borderLeft: `3px solid ${news.impact === "Юқори" ? "#ef5350" : "#2962ff"}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#8a94a6", marginBottom: "4px" }}>
+                  <span>{news.time}</span>
+                  <span>Таъсир: {news.impact}</span>
+                </div>
+                <div style={{ fontSize: "13px", color: "#fff" }}>{news.text}</div>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </div>
+
       </div>
     </div>
   );
