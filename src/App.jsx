@@ -1,303 +1,275 @@
-import React, { useState } from "react";
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steam Bar | Tashkent</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0c10;
+            --card-bg: rgba(23, 25, 35, 0.7);
+            --border-color: rgba(212, 175, 55, 0.2);
+            --accent-gold: #d4af37;
+            --accent-glow: rgba(212, 175, 55, 0.15);
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+        }
 
-const PROPERTIES = [
-  {
-    id: 1,
-    title: "Шинам 3 хонали квартира (Центр)",
-    category: "Квартира",
-    price: "$85,000",
-    rooms: 3,
-    area: "78 m²",
-    location: "Тошкент ш., Чилонзор тумани",
-    description: "Евроремонт қилинган, барча мебеллари билан бирга сотилади. Метрога яқин.",
-    image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&auto=format&fit=crop&q=80",
-    url: "https://www.olx.uz/nedvizhimost/kvartiry/prodazha/"
-  },
-  {
-    id: 2,
-    title: "Ҳашаматли Ҳовли (Коттедж)",
-    category: "Ҳовли",
-    price: "$210,000",
-    rooms: 6,
-    area: "4.5 сотих",
-    location: "Тошкент вил., Зангиота",
-    description: "Янги қурилган, бассейн ва ёзги ошхонаси бор. Тинч маҳалла.",
-    image: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=600&auto=format&fit=crop&q=80",
-    url: "https://www.olx.uz/nedvizhimost/doma/prodazha/"
-  },
-  {
-    id: 3,
-    title: "Бизнес учун қулай Офис жойи",
-    category: "Офис",
-    price: "$120,000",
-    rooms: 4,
-    area: "110 m²",
-    location: "Тошкент ш., Миробод тумани",
-    description: "Бизнес марказда, алоҳида кириш жойи ва автотураргоҳи мавжуд.",
-    image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop&q=80",
-    url: "https://www.olx.uz/nedvizhimost/kommercheskaya-nedvizhimost/"
-  },
-  {
-    id: 4,
-    title: "Замонавий 2 хонали студия",
-    category: "Квартира",
-    price: "$58,000",
-    rooms: 2,
-    area: "52 m²",
-    location: "Тошкент ш., Юнусобод тумани",
-    description: "Новая новостройка, панорамные окна, шикарный вид на город.",
-    image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&auto=format&fit=crop&q=80",
-    url: "https://www.olx.uz/nedvizhimost/kvartiry/prodazha/"
-  },
-  {
-    id: 5,
-    title: "Яшил баҳмал диванли ва ёғоч стол қўйилган меҳмонхона интерьери",
-    category: "Дизайн лойиҳа",
-    price: "Махсус лойиҳа",
-    rooms: 1,
-    area: "Алоҳида хона",
-    location: "Интерьер дизайни",
-    description: "Бу сизнинг расмингиз асосида ўзгартирилган дизайн: кўк диван яшил баҳмал диванга алмаштирилди, оқ стол эса қора оёқли ёғоч столга ўзгартирилди.",
-    image: "watermarked_img_17003745142212475164.png", // Ўзингизнинг расм линкингиз ёки файлингиз номи
-    url: "#"
-  }
-];
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
 
-const REAL_ESTATE_NEWS = [
-  {
-    id: 1,
-    time: "Янги",
-    text: "Марказий банк ипотека кредитлаш шартлари ва фоиз ставкалари бўйича янги ҳисобот эълон қилди.",
-    impact: "Муҳим",
-    url: "https://cbu.uz/uz/press_center/news/"
-  },
-  {
-    id: 2,
-    time: "1 соат олдин",
-    text: "Тошкент шаҳрида янги қурилаётган уйлар нархининг ўзгариш тенденциялари таҳлили.",
-    impact: "Ўрта",
-    url: "https://www.gazeta.uz/uz/tag/ko-chmas-mulk/"
-  },
-  {
-    id: 3,
-    time: "3 соат олдин",
-    text: "Ер участкаларини расмийлаштириш ва кадастр ҳужжатларини олиш бўйича янги тартиблар.",
-    impact: "Юқори",
-    url: "https://lex.uz/"
-  }
-];
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 40%);
+            padding: 20px;
+        }
 
-export default function App() {
-  const [selectedCategory, setSelectedCategory] = useState("Барчаси");
-  const [activeImage, setActiveImage] = useState(null); // Расмни катта қилиб кўриш учун
-  const [formData, setFormData] = useState({ name: "", phone: "", message: "" });
-  const [isSubmitted, setIsSubmitted] = useState(false);
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
 
-  const filteredProperties = selectedCategory === "Барчаси" 
-    ? PROPERTIES 
-    : PROPERTIES.filter(p => p.category === selectedCategory);
+        /* Header / Hero */
+        .hero {
+            background: linear-gradient(135deg, rgba(26, 28, 36, 0.9), rgba(15, 16, 21, 0.95));
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            margin-bottom: 24px;
+        }
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!formData.name || !formData.phone) {
-      alert("Илтимос, исмингиз ва телефон рақамингизни киритинг!");
-      return;
-    }
-    setIsSubmitted(true);
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({ name: "", phone: "", message: "" });
-    }, 4000);
-  };
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+        }
 
-  return (
-    <div style={{ padding: "20px", background: "#0b0e14", color: "#fff", minHeight: "100vh", fontFamily: "sans-serif" }}>
-      
-      {/* Сайт Сарлавҳаси */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", marginBottom: "25px", borderBottom: "1px solid #2a2e39", paddingBottom: "15px" }}>
-        <div>
-          <h2 style={{ margin: 0, color: "#4f46e5" }}>🏠 MODERN REALTOR & PROPERTY HUB</h2>
-          <p style={{ margin: "5px 0 0 0", fontSize: "13px", color: "#8a94a6" }}>Тошкент шаҳри ва вилоятидаги энг ишончли кўчмас мулк объектлари</p>
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--accent-glow);
+            border: 1px solid var(--accent-gold);
+            color: var(--accent-gold);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+        }
+
+        .hero h1 {
+            font-size: 38px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #fff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: var(--accent-gold);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(212, 175, 55, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .card h3 {
+            color: var(--accent-gold);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card p {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* List features */
+        .feature-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 14px;
+        }
+
+        .feature-row:last-child {
+            border-bottom: none;
+        }
+
+        .feature-title {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .feature-value {
+            color: var(--text-muted);
+        }
+
+        /* Full Card */
+        .full-card {
+            grid-column: 1 / -1;
+        }
+
+        /* Button CTA */
+        .cta-btn {
+            display: block;
+            width: 100%;
+            background: linear-gradient(135deg, #d4af37 0%, #aa8c2c 100%);
+            color: #0b0c10;
+            text-align: center;
+            padding: 16px;
+            border-radius: 14px;
+            font-weight: 800;
+            text-decoration: none;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3);
+            transition: opacity 0.2s, transform 0.2s;
+            margin-top: 20px;
+        }
+
+        .cta-btn:hover {
+            opacity: 0.95;
+            transform: scale(1.01);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 13px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Hero Banner -->
+        <div class="hero">
+            <div class="badge">★ 4.3 (1 тыс.+ sharhlar) • Bar & Lounge</div>
+            <h1>Steam Bar</h1>
+            <p>Tashkent shahrining eng sara shinam maskani va unutilmas oqshomlar</p>
         </div>
-        <div style={{ background: "#1e222d", padding: "10px 16px", borderRadius: "8px", border: "1px solid #2a2e39" }}>
-          <span style={{ fontSize: "12px", color: "#8a94a6" }}>Алоқа маркази: </span>
-          <span style={{ color: "#22c55e", fontWeight: "bold", fontSize: "14px" }}>+998 (90) 123-45-67</span>
-        </div>
-      </div>
 
-      {/* Категориялар тугмалари */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "25px", flexWrap: "wrap" }}>
-        {["Барчаси", "Квартира", "Ҳовли", "Офис", "Дизайн лойиҳа"].map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
-            style={{
-              padding: "8px 18px",
-              borderRadius: "6px",
-              border: "none",
-              background: selectedCategory === cat ? "#4f46e5" : "#1e222d",
-              color: "#fff",
-              cursor: "pointer",
-              fontWeight: "bold",
-              transition: "0.2s"
-            }}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
+        <!-- Content Grid -->
+        <div class="grid">
+            <!-- Biz haqimizda -->
+            <div class="card">
+                <h3>✨ Biz Haqimizda</h3>
+                <p>Steam Bar — Toshkentdagi eng mashhur va kayfiyatli maskanlardan biri. Biz mehmonlarimizga yuqori darajadagi xizmat, mukammal muhit va unutilmas dam olish onlarigacha taqdim etamiz.</p>
+            </div>
 
-      {/* Объектлар Сеткатоси (Grid) */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px", marginBottom: "30px" }}>
-        {filteredProperties.map((prop) => (
-          <div key={prop.id} style={{ background: "#131722", borderRadius: "10px", overflow: "hidden", border: "1px solid #2a2e39", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-            <div>
-              {/* Расмни босганда катташади */}
-              <div 
-                onClick={() => setActiveImage(prop.image)} 
-                style={{ cursor: "pointer", position: "relative", height: "180px", overflow: "hidden" }}
-              >
-                <img 
-                  src={prop.image} 
-                  alt={prop.title} 
-                  style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.3s" }} 
-                />
-                <span style={{ position: "absolute", top: "10px", right: "10px", background: "rgba(0,0,0,0.7)", padding: "4px 8px", borderRadius: "4px", fontSize: "12px", fontWeight: "bold", color: "#4f46e5" }}>
-                  {prop.price}
-                </span>
-                <span style={{ position: "absolute", bottom: "8px", left: "8px", background: "rgba(0,0,0,0.6)", padding: "2px 6px", borderRadius: "4px", fontSize: "10px", color: "#ccc" }}>
-                  🔍 Катта қилиб кўриш
-                </span>
-              </div>
-
-              <div style={{ padding: "15px" }}>
-                <h3 style={{ margin: "0 0 8px 0", fontSize: "16px", color: "#fff" }}>{prop.title}</h3>
-                <p style={{ margin: "0 0 10px 0", fontSize: "12px", color: "#8a94a6" }}>📍 {prop.location}</p>
-                <p style={{ margin: "0 0 12px 0", fontSize: "13px", color: "#cbd5e1", lineHeight: "1.4" }}>{prop.description}</p>
-                
-                <div style={{ display: "flex", gap: "10px", marginBottom: "15px", fontSize: "12px" }}>
-                  <span style={{ background: "#1e222d", padding: "4px 8px", borderRadius: "4px" }}>🛏 Хона: {prop.rooms}</span>
-                  <span style={{ background: "#1e222d", padding: "4px 8px", borderRadius: "4px" }}>📐 Майдон: {prop.area}</span>
+            <!-- Xususiyatlar -->
+            <div class="card">
+                <h3>🍸 Afzalliklarimiz</h3>
+                <div class="feature-row">
+                    <span class="feature-title">Terrasa:</span>
+                    <span class="feature-value">Ochiq havodagi joy</span>
                 </div>
-              </div>
-            </div>
-
-            <div style={{ padding: "0 15px 15px 15px" }}>
-              <a 
-                href={prop.url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                style={{ 
-                  display: "block", 
-                  textAlign: "center", 
-                  background: "#4f46e5", 
-                  color: "#fff", 
-                  padding: "8px", 
-                  borderRadius: "6px", 
-                  textDecoration: "none", 
-                  fontSize: "13px",
-                  fontWeight: "bold" 
-                }}
-              >
-                Батафсил кўриш (Манба 🔗)
-              </a>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Пастки қисм: Янгиликлар ва Мурожаат Формаси */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "20px" }}>
-        
-        {/* Кўчмас Мулк Янгиликлари */}
-        <div style={{ background: "#131722", padding: "20px", borderRadius: "10px", border: "1px solid #2a2e39" }}>
-          <h3 style={{ marginTop: 0, fontSize: "16px", color: "#f59e0b" }}>📰 Бозор Янгиликлари & Қонунчилик</h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "15px" }}>
-            {REAL_ESTATE_NEWS.map((news) => (
-              <a 
-                key={news.id} 
-                href={news.url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                style={{ 
-                  background: "#1e222d", 
-                  padding: "10px", 
-                  borderRadius: "6px", 
-                  borderLeft: "3px solid #4f46e5",
-                  textDecoration: "none",
-                  display: "block"
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#8a94a6", marginBottom: "4px" }}>
-                  <span>{news.time} 🔗</span>
-                  <span>Муҳимлик: {news.impact}</span>
+                <div class="feature-row">
+                    <span class="feature-title">Kokteyllar:</span>
+                    <span class="feature-value">Mualliflik karta</span>
                 </div>
-                <div style={{ fontSize: "13px", color: "#fff" }}>{news.text}</div>
-              </a>
-            ))}
-          </div>
-        </div>
-
-        {/* Уй сотиб олиш ёки сотиш учун мурожаат формаси */}
-        <div style={{ background: "#131722", padding: "20px", borderRadius: "10px", border: "1px solid #2a2e39" }}>
-          <h3 style={{ marginTop: 0, fontSize: "16px", color: "#22c55e" }}>📞 Мутахассисдан Бепул Маслаҳат Олиш</h3>
-          
-          {isSubmitted ? (
-            <div style={{ background: "rgba(34, 197, 94, 0.2)", padding: "20px", borderRadius: "6px", textAlign: "center", color: "#22c55e", marginTop: "15px" }}>
-              ✅ Хабарингиз қабул қилинди! Тез орада реалторомиз сиз билан боғланади.
+                <div class="feature-row">
+                    <span class="feature-title">Musiqa:</span>
+                    <span class="feature-value">Jonli ijro oqshomlari</span>
+                </div>
             </div>
-          ) : (
-            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "15px" }}>
-              <input 
-                type="text" 
-                placeholder="Исминггиз" 
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                style={{ padding: "10px", borderRadius: "6px", border: "1px solid #2a2e39", background: "#1e222d", color: "__fff" }}
-              />
-              <input 
-                type="text" 
-                placeholder="Телефон рақамингиз (+998 ...)" 
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                style={{ padding: "10px", borderRadius: "6px", border: "1px solid #2a2e39", background: "#1e222d", color: "#fff" }}
-              />
-              <textarea 
-                placeholder="Қандай уй ёки квартира қидирмоқдасиз?" 
-                rows="3"
-                value={formData.message}
-                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                style={{ padding: "10px", borderRadius: "6px", border: "1px solid #2a2e39", background: "#1e222d", color: "#fff", resize: "none" }}
-              ></textarea>
-              <button 
-                type="submit" 
-                style={{ background: "#22c55e", color: "#000", border: "none", padding: "10px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}
-              >
-                Ариза юбориш
-              </button>
-            </form>
-          )}
         </div>
 
-      </div>
-
-      {/* Расмни тўлиқ экранда кўрсатиш модали (Lightbox) */}
-      {activeImage && (
-        <div 
-          onClick={() => setActiveImage(null)}
-          style={{
-            position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
-            background: "rgba(0,0,0,0.9)", display: "flex", justifyContent: "center", alignItems: "center",
-            zIndex: 1000, cursor: "pointer"
-          }}
-        >
-          <div style={{ textAlign: "center" }}>
-            <img src={activeImage} alt="Zoomed" style={{ maxWidth: "90vw", maxHeight: "85vh", borderRadius: "8px", objectFit: "contain" }} />
-            <div style={{ color: "#fff", marginTop: "10px", fontSize: "14px" }}>Ёпиш учун исталган жойга босинг ✕</div>
-          </div>
+        <!-- Menyu bo'limi -->
+        <div class="card full-card">
+            <h3>🍽️ Asosiy Menyudan Namuna</h3>
+            <div class="grid" style="margin-bottom: 0; margin-top: 15px;">
+                <div>
+                    <div class="feature-title" style="margin-bottom: 4px;">Signature Kokteyllar</div>
+                    <p>Barasistentlar tomonidan maxsus tayyorlanadigan eksklyuziv ichimliklar.</p>
+                </div>
+                <div>
+                    <div class="feature-title" style="margin-bottom: 4px;">Yevropa va Milliy Taomlar</div>
+                    <p>Sifatli masalliqlardan tayyorlangan nafis gazak va issiq ovqatlar.</p>
+                </div>
+            </div>
         </div>
-      )}
 
+        <!-- Aloqa va Ish tartibi -->
+        <div class="card full-card" style="margin-top: 24px;">
+            <h3>📍 Aloqa va Ish Tartibi</h3>
+            <div class="feature-row">
+                <span class="feature-title">Holati:</span>
+                <span class="feature-value" style="color: #ef4444; font-weight: 700;">Hozir yopiq (13:00 da ochiladi)</span>
+            </div>
+            <div class="feature-row">
+                <span class="feature-title">Bog'lanish (Telefon):</span>
+                <span class="feature-value" style="color: #fff; font-weight: 700;">+998 88 133 25 55</span>
+            </div>
+            <div class="feature-row">
+                <span class="feature-title">Manzil:</span>
+                <span class="feature-value">Tashkent, Steam Bar</span>
+            </div>
+            
+            <a href="tel:+998881332555" class="cta-btn">Stol Band Qilish / Qo'ng'iroq qilish</a>
+        </div>
+
+        <div class="footer">
+            Steam Bar • Barcha huquqlar himoyalangan © 2026
+        </div>
     </div>
-  );
-}
+
+</body>
+</html>
