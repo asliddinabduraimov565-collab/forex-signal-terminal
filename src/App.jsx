@@ -1,275 +1,127 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Steam Bar | Tashkent</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #0b0c10;
-            --card-bg: rgba(23, 25, 35, 0.7);
-            --border-color: rgba(212, 175, 55, 0.2);
-            --accent-gold: #d4af37;
-            --accent-glow: rgba(212, 175, 55, 0.15);
-            --text-main: #ffffff;
-            --text-muted: #94a3b8;
-        }
+import React from 'react';
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            min-height: 100vh;
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 40%);
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        /* Header / Hero */
-        .hero {
-            background: linear-gradient(135deg, rgba(26, 28, 36, 0.9), rgba(15, 16, 21, 0.95));
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 40px 30px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-            backdrop-filter: blur(10px);
-            margin-bottom: 24px;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 3px;
-            background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--accent-glow);
-            border: 1px solid var(--accent-gold);
-            color: var(--accent-gold);
-            padding: 6px 16px;
-            border-radius: 50px;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
-        }
-
-        .hero h1 {
-            font-size: 38px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-            background: linear-gradient(to right, #fff, #cbd5e1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .hero p {
-            color: var(--accent-gold);
-            font-size: 16px;
-            font-weight: 500;
-        }
-
-        /* Grid Layout */
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            margin-bottom: 24px;
-        }
-
-        @media (max-width: 768px) {
-            .grid { grid-template-columns: 1fr; }
-        }
-
-        .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 24px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            transition: transform 0.3s ease, border-color 0.3s ease;
-        }
-
-        .card:hover {
-            border-color: rgba(212, 175, 55, 0.4);
-            transform: translateY(-2px);
-        }
-
-        .card h3 {
-            color: var(--accent-gold);
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .card p {
-            color: var(--text-muted);
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        /* List features */
-        .feature-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-size: 14px;
-        }
-
-        .feature-row:last-child {
-            border-bottom: none;
-        }
-
-        .feature-title {
-            color: var(--text-main);
-            font-weight: 600;
-        }
-
-        .feature-value {
-            color: var(--text-muted);
-        }
-
-        /* Full Card */
-        .full-card {
-            grid-column: 1 / -1;
-        }
-
-        /* Button CTA */
-        .cta-btn {
-            display: block;
-            width: 100%;
-            background: linear-gradient(135deg, #d4af37 0%, #aa8c2c 100%);
-            color: #0b0c10;
-            text-align: center;
-            padding: 16px;
-            border-radius: 14px;
-            font-weight: 800;
-            text-decoration: none;
-            font-size: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3);
-            transition: opacity 0.2s, transform 0.2s;
-            margin-top: 20px;
-        }
-
-        .cta-btn:hover {
-            opacity: 0.95;
-            transform: scale(1.01);
-        }
-
-        .footer {
-            text-align: center;
-            padding: 20px;
-            color: var(--text-muted);
-            font-size: 13px;
-            border-top: 1px solid rgba(255,255,255,0.05);
-            margin-top: 40px;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="container">
-        <!-- Hero Banner -->
-        <div class="hero">
-            <div class="badge">★ 4.3 (1 тыс.+ sharhlar) • Bar & Lounge</div>
-            <h1>Steam Bar</h1>
-            <p>Tashkent shahrining eng sara shinam maskani va unutilmas oqshomlar</p>
+export default function App() {
+  return (
+    <div style={{
+      backgroundColor: '#0b0c10',
+      color: '#ffffff',
+      minHeight: '100vh',
+      padding: '20px',
+      fontFamily: "'Plus Jakarta Sans', sans-serif"
+    }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        
+        {/* Hero Banner */}
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(26, 28, 36, 0.9), rgba(15, 16, 21, 0.95))',
+          border: '1px solid rgba(212, 175, 55, 0.2)',
+          borderRadius: '24px',
+          padding: '40px 30px',
+          textAlign: 'center',
+          marginBottom: '24px',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
+        }}>
+          <div style={{
+            display: 'inline-block',
+            background: 'rgba(212, 175, 55, 0.15)',
+            border: '1px solid #d4af37',
+            color: '#d4af37',
+            padding: '6px 16px',
+            borderRadius: '50px',
+            fontSize: '13px',
+            fontWeight: '600',
+            marginBottom: '20px'
+          }}>
+            ★ 4.3 (1 тыс.+ sharhlar) • Bar & Lounge
+          </div>
+          <h1 style={{ fontSize: '38px', fontWeight: '800', marginBottom: '10px', color: '#fff' }}>Steam Bar</h1>
+          <p style={{ color: '#d4af37', fontSize: '16px', fontWeight: '500' }}>Tashkent shahrining eng sara shinam maskani va unutilmas oqshomlar</p>
         </div>
 
-        <!-- Content Grid -->
-        <div class="grid">
-            <!-- Biz haqimizda -->
-            <div class="card">
-                <h3>✨ Biz Haqimizda</h3>
-                <p>Steam Bar — Toshkentdagi eng mashhur va kayfiyatli maskanlardan biri. Biz mehmonlarimizga yuqori darajadagi xizmat, mukammal muhit va unutilmas dam olish onlarigacha taqdim etamiz.</p>
-            </div>
+        {/* Content Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+          
+          {/* Biz haqimizda */}
+          <div style={{
+            background: 'rgba(23, 25, 35, 0.7)',
+            border: '1px solid rgba(212, 175, 55, 0.2)',
+            borderRadius: '20px',
+            padding: '24px'
+          }}>
+            <h3 style={{ color: '#d4af37', fontSize: '18px', marginBottom: '16px', textTransform: 'uppercase' }}>✨ Biz Haqimizda</h3>
+            <p style={{ color: '#94a3b8', fontSize: '14px', lineHeight: '1.6' }}>
+              Steam Bar — Toshkentdagi eng mashhur va kayfiyatli maskanlardan biri. Biz mehmonlarimizga yuqori darajadagi xizmat, mukammal muhit taqdim etamiz.
+            </p>
+          </div>
 
-            <!-- Xususiyatlar -->
-            <div class="card">
-                <h3>🍸 Afzalliklarimiz</h3>
-                <div class="feature-row">
-                    <span class="feature-title">Terrasa:</span>
-                    <span class="feature-value">Ochiq havodagi joy</span>
-                </div>
-                <div class="feature-row">
-                    <span class="feature-title">Kokteyllar:</span>
-                    <span class="feature-value">Mualliflik karta</span>
-                </div>
-                <div class="feature-row">
-                    <span class="feature-title">Musiqa:</span>
-                    <span class="feature-value">Jonli ijro oqshomlari</span>
-                </div>
+          {/* Afzalliklar */}
+          <div style={{
+            background: 'rgba(23, 25, 35, 0.7)',
+            border: '1px solid rgba(212, 175, 55, 0.2)',
+            borderRadius: '20px',
+            padding: '24px'
+          }}>
+            <h3 style={{ color: '#d4af37', fontSize: '18px', marginBottom: '16px', textTransform: 'uppercase' }}>🍸 Afzalliklarimiz</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' }}>
+              <span style={{ fontWeight: '600' }}>Terrasa:</span>
+              <span style={{ color: '#94a3b8' }}>Ochiq havodagi joy</span>
             </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' }}>
+              <span style={{ fontWeight: '600' }}>Kokteyllar:</span>
+              <span style={{ color: '#94a3b8' }}>Mualliflik karta</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: '14px' }}>
+              <span style={{ fontWeight: '600' }}>Musiqa:</span>
+              <span style={{ color: '#94a3b8' }}>Jonli ijro oqshomlari</span>
+            </div>
+          </div>
+
         </div>
 
-        <!-- Menyu bo'limi -->
-        <div class="card full-card">
-            <h3>🍽️ Asosiy Menyudan Namuna</h3>
-            <div class="grid" style="margin-bottom: 0; margin-top: 15px;">
-                <div>
-                    <div class="feature-title" style="margin-bottom: 4px;">Signature Kokteyllar</div>
-                    <p>Barasistentlar tomonidan maxsus tayyorlanadigan eksklyuziv ichimliklar.</p>
-                </div>
-                <div>
-                    <div class="feature-title" style="margin-bottom: 4px;">Yevropa va Milliy Taomlar</div>
-                    <p>Sifatli masalliqlardan tayyorlangan nafis gazak va issiq ovqatlar.</p>
-                </div>
-            </div>
+        {/* Aloqa va Ish tartibi */}
+        <div style={{
+          background: 'rgba(23, 25, 35, 0.7)',
+          border: '1px solid rgba(212, 175, 55, 0.2)',
+          borderRadius: '20px',
+          padding: '24px'
+        }}>
+          <h3 style={{ color: '#d4af37', fontSize: '18px', marginBottom: '16px', textTransform: 'uppercase' }}>📍 Aloqa va Ish Tartibi</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' }}>
+            <span style={{ fontWeight: '600' }}>Holati:</span>
+            <span style={{ color: '#ef4444', fontWeight: '700' }}>Hozir yopiq (13:00 da ochiladi)</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' }}>
+            <span style={{ fontWeight: '600' }}>Telefon:</span>
+            <span style={{ color: '#fff', fontWeight: '700' }}>+998 88 133 25 55</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', fontSize: '14px' }}>
+            <span style={{ fontWeight: '600' }}>Manzil:</span>
+            <span style={{ color: '#94a3b8' }}>Tashkent, Steam Bar</span>
+          </div>
+          
+          <a href="tel:+998881332555" style={{
+            display: 'block',
+            width: '100%',
+            background: 'linear-gradient(135deg, #d4af37 0%, #aa8c2c 100% )',
+            color: '#0b0c10',
+            textAlign: 'center',
+            padding: '16px',
+            borderRadius: '14px',
+            fontWeight: '800',
+            textDecoration: 'none',
+            fontSize: '15px',
+            textTransform: 'uppercase',
+            marginTop: '20px'
+          }}>
+            Stol Band Qilish / Qo'ng'iroq qilish
+          </a>
         </div>
 
-        <!-- Aloqa va Ish tartibi -->
-        <div class="card full-card" style="margin-top: 24px;">
-            <h3>📍 Aloqa va Ish Tartibi</h3>
-            <div class="feature-row">
-                <span class="feature-title">Holati:</span>
-                <span class="feature-value" style="color: #ef4444; font-weight: 700;">Hozir yopiq (13:00 da ochiladi)</span>
-            </div>
-            <div class="feature-row">
-                <span class="feature-title">Bog'lanish (Telefon):</span>
-                <span class="feature-value" style="color: #fff; font-weight: 700;">+998 88 133 25 55</span>
-            </div>
-            <div class="feature-row">
-                <span class="feature-title">Manzil:</span>
-                <span class="feature-value">Tashkent, Steam Bar</span>
-            </div>
-            
-            <a href="tel:+998881332555" class="cta-btn">Stol Band Qilish / Qo'ng'iroq qilish</a>
+        <div style={{ textAlign: 'center', padding: '20px', color: '#94a3b8', fontSize: '13px', marginTop: '40px' }}>
+          Steam Bar • Barcha huquqlar himoyalangan © 2026
         </div>
 
-        <div class="footer">
-            Steam Bar • Barcha huquqlar himoyalangan © 2026
-        </div>
+      </div>
     </div>
-
-</body>
-</html>
+  );
+}
